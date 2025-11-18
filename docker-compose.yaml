@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  # Redis
+  redis:
+    image: redis:latest
+    container_name: chat-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-chat-data:/data
+    networks:
+      - chat-network
+    restart: unless-stopped
+
+  # Redis Commander (GUI)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-gui
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    networks:
+      - chat-network
+    depends_on:
+      - redis
+
+volumes:
+  redis-chat-data:
+
+networks:
+  chat-network:
+    driver: bridge
