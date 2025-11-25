@@ -155,7 +155,7 @@
                     console.log('📨 WebSocket message:', data);
                     
                     // Nhận thông báo OCR hoàn thành
-                    if (data.status === 'completed') {
+                    if (data.status === 'completed' || data.status === 'success') {
                         console.log('🎉 OCR hoàn thành!');
                         
                         // Tự động lấy kết quả
