@@ -1,217 +1,204 @@
-# Cấu trúc và vị trí file của tính năng chat với AI
+# ASP.NET ZERO - DPS.DMS Project
 
-## 1. Core Layer (Domain Entities)
+## Tài liệu & Tham khảo
+- [ASP.NET Zero Development Guide](https://www.aspnetzero.com/Documents/Development-Guide-Core)
+- Project này được sử dụng làm template cho các dự án khác
 
-### Entity Classes
-```
-src/Zero.Core/Abp/Chat/
-├── AIChatConversation.cs          # Entity lưu thông tin conversation
-└── AIChatMessage.cs                # Entity lưu tin nhắn trong conversation
-```
+## Thư viện bên thứ 3
+- Telerik Reporting 2021 R1 SP2 (v15.0.21.326)
+- Telerik Kendo UI 2021 R1 SP2 (v2021.1.330)
+- Telerik UI for ASP.NET Core 2021 R1 SP2 (v2021.1.330)
 
-### Configuration Classes
-```
-src/Zero.Core/Customize/AI/
-└── AIProviderSettings.cs           # Cấu hình AI provider (OpenAI, Gemini, Ollama)
-```
+## Kiến trúc dự án (Clean Architecture)
 
-## 2. Application Layer
+| Tầng | Project | Mô tả |
+|------|---------|-------|
+| **Domain** | `DPS.Dms.Core` | Entities, Domain Logic |
+| **Application** | `DPS.Dms.Application` | Business Logic, Services |
+| | `DPS.Dms.Application.Shared` | DTOs, Interfaces |
+| **Infrastructure** | `Zero.EntityFrameworkCore` | Database, EF Core |
+| **Presentation** | `Zero.Web.Mvc` | Controllers, Views, UI |
+| | `Zero.Web.Mvc.Areas.App` | Administrator feature |
+| | `Zero.Web.Mvc.Areas.Dms` | Common feature |
+| | `Zero.Web.Mvc.wwwroot.view-resources` | JS code |
+| | `AppPageNames.cs` | Định nghĩ tên trang |
+| | `AppNavigationProvider.cs`n  | Xây dựng menu điều hướng |
 
-### DTOs
-```
-src/Zero.Application.Shared/Customize/AI/Dto/
-├── AIChatDto.cs                    # SendMessageInput, AIChatResponse, AIProviderDto
-├── AIStreamDto.cs                  # DTO cho streaming response
-└── ConversationMessage.cs          # DTO cho tin nhắn trong context
-```
-
-### Application Service Interface
-```
-src/Zero.Application.Shared/Customize/AI/
-└── IAIAppService.cs                # Interface định nghĩa các method của AI service
-```
-
-### Application Service Implementation
-```
-src/Zero.Application/Customize/AI/
-├── AIAppService.cs                 # Service xử lý logic chat với AI
-├── UniversalAIProvider.cs          # Provider gọi API các AI khác nhau
-└── ConversationContextService.cs   # Service quản lý ngữ cảnh conversation (Redis)
-```
-
-## 3. Web Layer (MVC)
-
-### Controller
-```
-src/Zero.Web.Core/Controllers/
-└── DebugController.cs              # Controller debug Redis và conversation context
-```
-
-### View
-```
-src/Zero.Web.Mvc/Areas/App/Views/
-└── [YourAIChatView]/               # View cho giao diện chat AI
-    ├── Index.cshtml
-    └── _ChatModal.cshtml
-```
-
-### JavaScript
-```
-src/Zero.Web.Mvc/wwwroot/view-resources/Areas/App/
-└── [YourAIChatView]/               # JavaScript xử lý chat UI
-    ├── Index.js
-    └── _ChatModal.js
-```
-
-### Debug/Test Files
-```
-src/Zero.Web.Mvc/wwwroot/
-└── debug-redis.html                # HTML test Redis và conversation context
-```
-
-## 4. Database Layer
-
-### DbContext
-```
-src/Zero.EntityFrameworkCore/EntityFrameworkCore/
-└── ZeroDbContext.cs                # Khai báo DbSet<AIChatConversation>, DbSet<AIChatMessage>
-```
-
-## 5. Configuration
-
-### App Settings
-```
-src/Zero.Web.Mvc/
-└── appsettings.json                # Cấu hình AI providers và Redis
-    ├── AIProviders[]               # Danh sách AI providers (ChatGPT, Gemini, Ollama)
-    └── Abp.RedisCache              # Cấu hình Redis cho conversation context
-```
-
-### Startup Configuration
-```
-src/Zero.Web.Core/
-└── ZeroWebCoreModule.cs            # Enable Redis cache trong PreInitialize()
-```
-
-### Docker Configuration
-```
-/
-└── docker-compose.yaml             # Cấu hình Redis container và Redis Commander
-```
-
----
-
-## Tóm tắt luồng hoạt động:
-
-1. **User gửi tin nhắn** → Frontend (JS) → AIAppService
-2. **AIAppService** → ConversationContextService lấy lịch sử từ Redis
-3. **AIAppService** → UniversalAIProvider gọi AI API với context
-4. **AI response** → Lưu vào Redis → Trả về Frontend
-5. **Database** → Lưu conversation và messages vào SQL Server (optional)
-
-# Clone Repository này về
-
+## Trước khi chạy dự án thì chạy các lệnh sau 
+- đứng tại root folder có chứa file *.sln
 ```bash
-git clone https://github.com/trinhtu34/General-documentation-about-anything.git
-```
-# Tải Docker Desktop
-
-1. Tải và cài đặt Docker Desktop từ: https://www.docker.com/products/docker-desktop/
-2. Khởi động Docker Desktop
-
-**Lưu ý: Rất có thể khi tải docker desktop và khởi động sẽ gặp lỗi. Cụ thể lỗi này liên quan tới WSL ( Windows Subsystem Linux ) trên máy tính. Nếu thấy bất kỳ Error nào, hãy liên hệ Tú ngay!**
-
-# Setup Redis
-
-Để tải Redis trên Docker, làm như sau:
-
-1. **Chạy docker compose:**
-```bash
-cd General-documentation-about-anything
-docker-compose up -d
-
-```
-
-# Setup Project
-
-**Yêu cầu: Vị trí của Terminal nằm tại thư mục root của project, là thư mục chứa file .sln ý. Example: PS D:\Company_Folder\qldac12>**
-
-```bash
-git clone https://git.368up.com/scm/zero103/qldac12.git
-cd qldac12
-git checkout -b Feature/QLDAC12-16
-git pull origin Feature/QLDAC12-16
-# Tại đây sẽ có thể hiện ra 1 bảng, đại loại nó thông báo conflic, để thoát và lưu chỉ cần gõ như sau
-:qa
 npm install
-cd src/Zero.EntityFrameworkCore
-dotnet ef migrations add Added_All
+cd scr/Zero.EntityFrameworkCore
+dotnet ef migrations add Add_AIChatTables
 dotnet ef database update
 cd ..
 cd Zero.Web.Mvc
 yarn install
-# This command can be error, because gulp can be exist in this project
 npm install gulp-cli -g
 gulp buildDev
 dotnet run
 ```
 
-# Test Chat Feature Step-by-step
+## Workflow tạo tính năng mới
 
-Sau khi chạy lệnh ```dotnet run``` ở bước trên xong thì đợi 1 chút chương trình sẽ được khởi động tại:
+```
+1. Entity → 2. Migration → 3. DTO → 4. Mapper → 5. Interface & Service → 6. UI
+```
 
+## Hướng dẫn chi tiết: Thêm chức năng "Danh mục"
+
+### Bước 1: Cấu hình Navigation & Permission
+
+#### 1.1 Thêm Page Name
+**File**: `AppPageNames.cs`
+- Thêm constant vào class `dms`
+
+#### 1.2 Thêm Menu Navigation
+**File**: `AppNavigationProvider.cs`
+- Thêm menu item vào hàm `MenuCategories()`
+
+#### 1.3 Thêm Localization
+**File**: `AbpZero-vi.xml` và `AbpZero.xml`
+- Thêm text hiển thị cho menu
+
+#### 1.4 Thêm Permission
+**File**: `AppPermissions.cs`
+- Thêm permission constants
+
+**File**: `AppAuthorizationProvider.cs`
+- Cấu hình permission trong hàm `SetPermissionCategories()`
+
+### Bước 2: Tạo Entity & Migration
+
+#### 2.1 Tạo Entity
+**Thư mục**: `customize/Dms/DPS.Dms.Core/Category/`
+- Tạo file `[EntityName].cs` (ví dụ: `SectorCategory.cs`)
+
+#### 2.2 Cập nhật DbContext
+**File**: `ZeroDbContext.cs`
+- Thêm `DbSet<EntityName>` vào DbContext
+
+#### 2.3 Migration Database
 ```bash
-# Trước tiên là cần đăng nhập
-https://localhost:44302/
-
-# Sau đó là truy cập vào trang chat
-https://localhost:44302/dms/aichat
+cd Zero.EntityFrameworkCore
+dotnet ef migrations add Added_[EntityName]
+dotnet ef database update
 ```
 
-**Lưu ý: trang web chưa có Sidebar để trỏ tới trang chat, vì vậy hãy truy cập bằng đường link ở trên.** 
+### Bước 3: Tạo DTOs
 
-**Và hơn hết, trang chat với AI chỉ có thể chat với ChatGPT, Gemini, còn nếu muốn chat với qwen2.5(đây là 1 ollama's model thì phải cài ollama mà Qwen ở local, nếu cần test với AI ở local thì liên hệ tôi để Setting). Trang web cũng chưa có CSS nên xấu lắm!**
+**Thư mục**: `customize/Dms/DPS.Dms.Application.Shared/Dto/Category/[EntityName]/`
 
----
+Tạo các DTO sau:
 
-# Cơ chế AI nhớ ngữ cảnh conversation
+| File | Mục đích |
+|------|----------|
+| `CreateOrEdit[EntityName]Dto.cs` | Form tạo/sửa |
+| `Get[EntityName]ForEditOutput.cs` | Output khi lấy dữ liệu edit |
+| `[EntityName]Dto.cs` | Hiển thị dữ liệu |
+| `Get[EntityName]ForViewDto.cs` | Hiển thị chi tiết |
+| `GetAll[EntityName]Input.cs` | Input cho danh sách |
 
-## Vấn đề
-AI không có memory thực sự giữa các request. Mỗi lần gọi API, AI không biết gì về cuộc trò chuyện trước đó.
+### Bước 4: Cấu hình AutoMapper
 
-## Giải pháp: Redis Conversation Context
+**File**: `CustomAutoMapper.cs` hoặc `CustomDtoMapper.cs`
+- Thêm mapping giữa Entity và DTO
 
-### Workflow:
-```
-1. User gửi tin nhắn → Lấy 10 tin nhắn gần nhất từ Redis
-2. Xây dựng context prompt: "Previous conversation: [lịch sử]\n\nUser: [tin nhắn mới]"
-3. Gửi toàn bộ context cho AI
-4. AI trả lời dựa trên ngữ cảnh đầy đủ
-5. Lưu cả user message và AI response vào Redis
-```
+### Bước 5: Tạo Application Service
 
-### Cấu hình:
-- **Giới hạn**: 10 tin nhắn gần nhất mỗi conversation
-- **Expire**: Tự động xóa sau 2 giờ
-- **Storage**: Redis (localhost:6379)
-- **Cache Key**: `ConversationContext_{conversationId}`
+#### 5.1 Interface
+**Thư mục**: `customize/Dms/DPS.Dms.Application.Shared/Interface/Category/`
+- Tạo `I[EntityName]AppService.cs`
 
-### Ví dụ:
-```
-Lần 1:
-User: "Tôi tên là Tú"
-AI: "Chào Tú!"
-→ Lưu Redis: [{role: "user", content: "Tôi tên là Tú"}, {role: "assistant", content: "Chào Tú!"}]
+#### 5.2 Implementation
+**Thư mục**: `customize/Dms/DPS.Dms.Application/Services/Category/`
+- Tạo `[EntityName]AppService.cs`
+- Implement business logic (CRUD operations)
 
-Lần 2:
-User: "Bạn có nhớ tên tôi không?"
-→ Lấy Redis: [lịch sử 2 tin nhắn trên]
-→ Gửi AI: "Previous conversation:\nuser: Tôi tên là Tú\nassistant: Chào Tú!\n\nUser: Bạn có nhớ tên tôi không?"
-→ AI: "Có, tên bạn là Tú!"
-```
+### Bước 6: Tạo UI Layer
 
----
+> **Lưu ý**: 
+> - Chức năng DMS → `Areas/Dms`
+> - Chức năng quản trị → `Areas/App`
 
-**Tài liệu được cập nhật vào lúc: 11h45 ngày 19/11/2025**
+#### 6.1 Controller
+**Thư mục**: `Areas/Dms/Controllers/`
+- Tạo `[EntityName]Controller.cs`
 
-**Được viết bởi: Trinhtu34 - Trịnh Ngọc Tú**
+#### 6.2 ViewModels
+**Thư mục**: `Areas/Dms/Models/`
+- `[EntityName]ViewModel.cs`
+- `CreateOrEdit[EntityName]ModalViewModel.cs`
+
+#### 6.3 Views
+**Thư mục**: `Areas/Dms/Views/[EntityName]/`
+- `Index.cshtml` - Trang danh sách
+- `_CreateOrEditModal.cshtml` - Modal tạo/sửa
+- `_ViewDetailModal.cshtml` - Modal xem chi tiết
+
+#### 6.4 JavaScript
+**Thư mục**: `wwwroot/view-resources/Areas/Dms/Category/[EntityName]/`
+- `Index.js` - Logic trang danh sách
+- `_CreateOrEditModal.js` - Logic modal tạo/sửa
+
+## Checklist Implementation
+
+### Core Configuration
+- [ ] AppPageNames.cs
+- [ ] AppNavigationProvider.cs
+- [ ] AppPermissions.cs
+- [ ] AppAuthorizationProvider.cs
+- [ ] AbpZero.xml / AbpZero-vi.xml
+- [ ] ZeroDbContext.cs
+
+### Domain Layer
+- [ ] Entity: `DPS.Dms.Core/Category/[EntityName].cs`
+- [ ] Migration: `dotnet ef migrations add`
+- [ ] Update Database: `dotnet ef database update`
+
+### Application Layer
+- [ ] DTOs (5 files)
+- [ ] Interface: `I[EntityName]AppService.cs`
+- [ ] Service: `[EntityName]AppService.cs`
+- [ ] Mapper: `CustomAutoMapper.cs`
+
+### Presentation Layer
+- [ ] Controller: `[EntityName]Controller.cs`
+- [ ] ViewModels (2 files)
+- [ ] Views (3 files)
+- [ ] JavaScript (2 files)
+
+## Ví dụ: SectorCategory
+
+### Files đã sửa
+- AppPageNames.cs
+- AppNavigationProvider.cs
+- AbpZero.xml, AbpZero-vi.xml
+- AppPermissions.cs
+- ZeroDbContext.cs
+
+### Files đã tạo mới
+
+**Domain**
+- `customize/Dms/DPS.Dms.Core/Category/SectorCategory.cs`
+
+**Application**
+- `customize/Dms/DPS.Dms.Application.Shared/Dto/Category/SectorCategory/`
+  - CreateOrEditSectorCategoryDto.cs
+  - GetSectorCategoryForEditOutput.cs
+  - SectorCategoryDto.cs
+  - GetSectorCategoryForViewDto.cs
+  - GetAllSectorCategoriesInput.cs
+- `customize/Dms/DPS.Dms.Application.Shared/Interface/Category/ISectorCategoryAppService.cs`
+- `customize/Dms/DPS.Dms.Application/Services/Category/SectorCategoryAppService.cs`
+
+**Presentation**
+- Controllers, ViewModels, Views, JavaScript (theo cấu trúc ở Bước 6)
+
+## Tips & Best Practices
+
+- Luôn chạy migration sau khi tạo/sửa entity
+- Đặt tên file và class theo convention của project
+- Test từng bước trước khi chuyển sang bước tiếp theo
+- Sử dụng permission để kiểm soát quyền truy cập
+- Localization cho cả tiếng Việt và tiếng Anh
